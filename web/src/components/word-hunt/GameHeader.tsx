@@ -40,7 +40,7 @@ export default function GameHeader({
             </div>
 
             <span className="text-xl font-bold tracking-tight">
-              daily<span className="text-emerald-400">.</span>
+              daily<span className="text-emerald-400">Dot</span>
             </span>
           </div>
 
