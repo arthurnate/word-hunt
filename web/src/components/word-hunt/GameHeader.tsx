@@ -32,7 +32,7 @@ export default function GameHeader({
 
   return (
     <>
-      <header className="mb-10">
+      <header className="mb-7">
         <div className="flex items-center justify-between gap-3 border-b border-zinc-800 pb-5">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">

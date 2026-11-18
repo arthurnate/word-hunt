@@ -1,5 +1,11 @@
 
 import { Lightbulb } from "lucide-react";
+import { Space_Grotesk } from "next/font/google";
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
 
 export type GuessResult = {
   guess: string;
@@ -44,7 +50,7 @@ export default function GuessHistory({
   return (
     <section className="mt-5">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-zinc-100">
+        <h2 className="text-lg font-bold tracking-tight text-zinc-100">
           Your guesses
         </h2>
 
@@ -87,19 +93,19 @@ export default function GuessHistory({
                 {/* Word, hint label, and rank */}
                 <div className="relative z-10 flex h-full items-center justify-between gap-3 px-4">
                   <div className="flex min-w-0 items-center gap-2">
-                    <span className="truncate capitalize text-sm font-semibold text-white drop-shadow-sm">
+                    <span className="truncate capitalize text-base font-semibold tracking-tight text-white drop-shadow-sm">
                       {item.guess}
                     </span>
 
                     {item.isHint && (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-white/20 bg-[#161616]/70 px-2 py-1 text-[10px] font-semibold text-white">
+                      <span className="{`${spaceGrotesk.className} inline-flex shrink-0 items-center gap-1 rounded-md border border-white/20 bg-[#161616]/70 px-2 py-1 text-[10px] font-semibold text-white">
                         <Lightbulb className="h-3 w-3 text-emerald-300" />
                         Hint
                       </span>
                     )}
                   </div>
 
-                  <span className="shrink-0 rounded bg-[#161616]/60 px-2 py-1 text-sm font-semibold tabular-nums text-zinc-100">
+                  <span className={` shrink-0 rounded bg-[#161616]/60 px-2 py-1 text-sm font-bold tabular-nums tracking-tight text-zinc-100`}>
                     {item.rank.toLocaleString()}
                   </span>
                 </div>

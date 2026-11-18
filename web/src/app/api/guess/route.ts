@@ -175,8 +175,10 @@ if (
       }
 
       const bestRank = bestWord
+      ? Object.hasOwn(puzzle.rankings, bestWord)
         ? puzzle.rankings[bestWord]
-        : puzzle.totalWords;
+        : undefined
+      : puzzle.totalWords;
 
       if (bestRank === undefined) {
         return NextResponse.json(

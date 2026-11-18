@@ -95,7 +95,7 @@ export default function FAQModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="faq-title"
-        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-[#1c1c1c] shadow-2xl"
+        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-[#1c1c1c] shadow-2xl "
       >
         <div className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-6 py-5">
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export default function FAQModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto px-6 py-2">
+        <div className="overflow-y-auto px-6 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {faqs.map((faq, index) => {
             const isOpen = openIndex === index;
 

@@ -89,7 +89,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const startedAt = performance.now();
 
   const supabase = await createClient();
 
@@ -98,7 +97,7 @@ export async function POST(request: Request) {
     error: authError,
   } = await supabase.auth.getUser();
 
-  const authMs = performance.now() - startedAt;
+
 
   if (authError || !user) {
     return NextResponse.json(
@@ -110,13 +109,34 @@ export async function POST(request: Request) {
   let body: unknown;
 
   try {
-    body = await request.json();
-  } catch {
+  const contentLength = request.headers.get("content-length");
+
+  if (
+    contentLength !== null &&
+    Number(contentLength) > 1024
+  ) {
     return NextResponse.json(
-      { error: "Invalid JSON body." },
-      { status: 400 }
+      { error: "Request body is too large." },
+      { status: 413 }
     );
   }
+
+  const rawBody = await request.text();
+
+  if (new TextEncoder().encode(rawBody).length > 1024) {
+    return NextResponse.json(
+      { error: "Request body is too large." },
+      { status: 413 }
+    );
+  }
+
+  body = JSON.parse(rawBody);
+} catch {
+  return NextResponse.json(
+    { error: "Invalid JSON body." },
+    { status: 400 }
+  );
+}
 
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json(
@@ -156,36 +176,19 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!isHint && puzzle.rankings[guess] === undefined) {
+    if (!isHint && !Object.hasOwn(puzzle.rankings, guess)) {
       return NextResponse.json(
         { error: "Word not found in the vocabulary." },
         { status: 404 }
       );
     }
 
-    // Measure profile creation/check.
-    const profileStart = performance.now();
+
 
     await ensurePlayerProfile(user);
 
-    const profileMs = performance.now() - profileStart;
-
-    // Measure the entire transaction.
-    const transactionStart = performance.now();
 
     const result = await db.transaction(async (tx) => {
-      // Temporary database performance instrumentation.
-      let checkpoint = performance.now();
-
-      function logStep(name: string) {
-        const now = performance.now();
-
-        console.log(
-          `[GAME DB] ${name}: ${Math.round(now - checkpoint)}ms`
-        );
-
-        checkpoint = now;
-      }
 
       // Serialize gameplay writes for this user.
       await tx.execute(sql`
@@ -193,8 +196,6 @@ export async function POST(request: Request) {
           hashtextextended(${user.id}, 0)
         )
       `);
-
-      logStep("Advisory lock");
 
       // Recheck the UTC date after acquiring the lock.
       if (getUTCDate() !== puzzle.date) {
@@ -212,8 +213,6 @@ export async function POST(request: Request) {
         )
         .limit(1);
 
-      logStep("Find session");
-
       let session = existingSession;
 
       if (!session) {
@@ -226,13 +225,15 @@ export async function POST(request: Request) {
           })
           .returning();
 
-        logStep("Create session");
-
         session = created;
       }
 
       if (session.puzzleId !== puzzle.puzzleId) {
         return { type: "puzzle_changed" as const };
+      }
+
+            if (session.status === "won") {
+        return { type: "already_won" as const };
       }
 
       let finalGuess = guess;
@@ -245,8 +246,6 @@ export async function POST(request: Request) {
           })
           .from(gameGuesses)
           .where(eq(gameGuesses.sessionId, session.id));
-
-        logStep("Load previous guesses");
 
         const bestRank =
           previousGuesses.length > 0
@@ -283,15 +282,11 @@ export async function POST(request: Request) {
         )
         .limit(1);
 
-      logStep("Duplicate check");
 
       if (existingGuess) {
         return { type: "duplicate" as const };
       }
 
-      if (session.status === "won") {
-        return { type: "already_won" as const };
-      }
 
       await tx.insert(gameGuesses).values({
         sessionId: session.id,
@@ -299,8 +294,6 @@ export async function POST(request: Request) {
         rank,
         isHint,
       });
-
-      logStep("Insert guess");
 
       if (rank === 1) {
         await tx
@@ -311,7 +304,6 @@ export async function POST(request: Request) {
           })
           .where(eq(gameSessions.id, session.id));
 
-        logStep("Mark won");
       }
 
       return {
@@ -319,16 +311,6 @@ export async function POST(request: Request) {
         guess: finalGuess,
         rank,
       };
-    });
-
-    const transactionMs =
-      performance.now() - transactionStart;
-
-    console.log("[GAME POST PERFORMANCE]", {
-      authMs: Math.round(authMs),
-      profileMs: Math.round(profileMs),
-      transactionMs: Math.round(transactionMs),
-      totalMs: Math.round(performance.now() - startedAt),
     });
 
     if (result.type === "puzzle_changed") {

@@ -195,6 +195,7 @@ export default function Home() {
   // Initialize today's puzzle and authenticated user.
   useEffect(() => {
     let cancelled = false;
+      const versionRef = loadVersion;
 
     async function initialize() {
       try {
@@ -238,9 +239,9 @@ export default function Home() {
     void initialize();
 
     return () => {
-      cancelled = true;
-      loadVersion.current++;
-    };
+  cancelled = true;
+  versionRef.current++;
+};
   }, [loadProgress]);
 
   // React only to actual account identity changes.
@@ -638,50 +639,35 @@ async function requestHint() {
 
 
   return (
-    <main className="min-h-screen bg-[#171717] px-5 py-6 text-white sm:px-8">
+    <main className="min-h-screen bg-[#171717] px-4 py-4 text-white sm:px-8 sm:py-6">
       <div className="mx-auto max-w-2xl">
         <GameHeader
           puzzleId={puzzle?.puzzleId}
           date={puzzle?.date}
         />
+
         <HowToPlay />
 
         <GuessInput
           guess={guess}
+          guessCount={guessHistory.length}
           loading={loading || !ready || !puzzle}
           hasWon={hasWon}
+          hintDisabled={loading || !ready || !puzzle || hasWon}
           onGuessChange={(value) => {
             setGuess(value);
             setError("");
             setSuggestion(null);
           }}
           onSubmit={submitGuess}
+          onHint={requestHint}
+          onFaq={() => setFaqOpen(true)}
         />
-
-        <div className="mt-3 flex items-center justify-center gap-3">
-          <button
-            onClick={requestHint}
-            disabled={loading || !ready || !puzzle || hasWon}
-            title="Reveal a hint"
-            className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-sm text-zinc-400 transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-            <Lightbulb className="h-4 w-4" />
-            Hint
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setFaqOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-sm text-zinc-400 transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-400"
-          >
-            <CircleHelp className="h-4 w-4" />
-            Faq
-          </button>
-        </div>
 
         {faqOpen && (
           <FAQModal onClose={() => setFaqOpen(false)} />
         )}
+
 
 
         {user && (
@@ -724,7 +710,7 @@ async function requestHint() {
             isSignedIn={mode === "account" && user !== null}
           />
         )}
-        
+
         <GuessHistory guesses={guessHistory} />
 
         <footer className="mt-14 border-t border-zinc-800 py-6 text-center text-xs text-zinc-600">
