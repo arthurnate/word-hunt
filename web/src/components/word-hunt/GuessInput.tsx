@@ -33,7 +33,7 @@ export default function GuessInput({
   const subtitle = hasWon
     ? "Come back tomorrow for another puzzle."
     : guessCount === 0
-      ? "Try water, farmer, or a Stegosaurus."
+      ? "Try water, farmer or a Stegosaurus."
       : "Every word is another clue.";
 
   return (
