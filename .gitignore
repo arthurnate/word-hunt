@@ -1,0 +1,20 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+.next/
+
+# Python
+__pycache__/
+.venv/
+venv/
+
+# Local files
+*.log
+.DS_Store
+
+# Private semantic engine datasets
+semantic-engine/data/
